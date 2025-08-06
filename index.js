@@ -21,7 +21,6 @@ dbConnection();
 app.use(helmet());
 app.use(cors({
   origin: process.env.APP_URL,
-  credentials: true, 
 }));
 app.use(cookieParser());
 app.use(bodyParser.json());

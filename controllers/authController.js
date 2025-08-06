@@ -313,19 +313,8 @@ const LOGIN = async (req, res, next) => {
         user.refreshToken = refreshToken;
         await user.save();
 
-        /**
-         * Why we are sending both tokens:
-         * 
-         * - accessToken: Short-lived token used for authenticating API requests.
-         * - refreshToken: Long-lived token used to issue a new access token when the old one expires.
-         * 
-         * Storing both as cookies allows seamless token refresh on the client side
-         * without forcing the user to log in again.
-         */
-
-        // Set tokens in HTTP-only cookies for better security
+        // Set only access token in HTTP-only cookie for better security
         res.cookie('accessToken', accessToken, accessTokenCookieOptions);
-        res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
 
         // Respond with user details (excluding sensitive data)
         res.status(200).json({
@@ -389,6 +378,106 @@ const LOGOUT = async (req, res, next) => {
         next(err);
     }
 };
+
+
+
+
+const REFRESH_TOKEN = async (req, res, next) => {
+    try {
+        // Extract access token from cookie or Authorization header
+        const token = req.cookies.accessToken || (req.headers.authorization && req.headers.authorization.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
+        
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "No access token provided"
+            });
+        }
+
+        // Decode the access token (even if expired) to get user ID
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+        } catch (err) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid access token"
+            });
+        }
+
+        // Fetch user from database
+        const user = await userModel.findById(decoded.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Check if user has a valid refresh token in the database
+        if (!user.refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: "No valid refresh token found"
+            });
+        }
+
+        // Verify the refresh token
+        try {
+            jwt.verify(user.refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        } catch (err) {
+            if (err.name === "TokenExpiredError") {
+                return res.status(401).json({
+                    success: false,
+                    message: "Refresh token expired"
+                });
+            }
+            return res.status(401).json({
+                success: false,
+                message: "Invalid refresh token"
+            });
+        }
+
+        // Generate new access token
+        const newAccessToken = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '15m' }
+        );
+
+        // Optionally rotate refresh token for added security
+        const newRefreshToken = jwt.sign(
+            { id: user._id },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d' }
+        );
+
+        // Update refresh token in database
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        // Set new access token in HTTP-only cookie
+        const accessTokenCookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 15 * 60 * 1000 // 15 minutes
+        };
+        res.cookie('accessToken', newAccessToken, accessTokenCookieOptions);
+
+        // Respond with success
+        res.status(200).json({
+            success: true,
+            message: "Access token refreshed successfully"
+        });
+
+    } catch (err) {
+        err.statusCode = 500;
+        next(err);
+    }
+};
+
+
 
 const ME = async (req, res, next) => {
     try {
@@ -527,4 +616,4 @@ const RESET_PASSWORD = async (req, res, next) => {
     }
 };
 
-export { REGISTER, LOGIN, LOGOUT, ME, FORGOT_PASSWORD, RESET_PASSWORD, VERIFY_OTP, RESEND_OTP };
+export { REGISTER, LOGIN, LOGOUT, ME, FORGOT_PASSWORD, RESET_PASSWORD, VERIFY_OTP, RESEND_OTP,REFRESH_TOKEN };
