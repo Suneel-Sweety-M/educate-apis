@@ -7,9 +7,9 @@ import paymentRoute from './paymentRoutes.js';
 
 const router = express.Router();
 
-router.use("/auth", authRoute);
+router.use("/api/auth", authRoute);
 router.use("/user", userRoute);
-router.use("/course", courseRoute);
+router.use("/api/course", courseRoute);
 router.use("/payment", paymentRoute);
 
 export default router;

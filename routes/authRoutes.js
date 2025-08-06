@@ -1,15 +1,20 @@
 import express from "express";
-import {} from "../controllers/authController.js";
+import { FORGOT_PASSWORD, LOGIN, LOGOUT, REGISTER, RESET_PASSWORD } from "../controllers/authController.js";
 
 const router = express.Router();
 
-// router.post("/register", register);
-// router.post("/login", login);
-// router.post("/verify-on-register-email", verifyRegisterEmailByOTP);
-// router.post("/resend-otp", resendOTP);
-// router.post("/forgot-password", ForgotPassword);
-// router.post("/reset-password", resetPassword);
+router.post("/register", REGISTER);
+router.post("/login", LOGIN);
+router.post("/verify-otp", VERIFY_OTP);
+router.post("/resend-otp", RESEND_OTP);
+router.post("/forgot-password", FORGOT_PASSWORD);
+router.post("/reset-password/:token", RESET_PASSWORD);
 // router.post("/refresh-token", refreshToken);
-// router.post("/logout", logout);
+router.post("/logout", LOGOUT);
 
 export default router;
+
+
+
+
+
