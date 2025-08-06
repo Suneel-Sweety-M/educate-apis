@@ -1,11 +1,7 @@
-// upload.js
-
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import multer from 'multer';
 import path from 'path';
 import dotenv from 'dotenv';
-import fs from 'fs';
-import { promises as fsp } from 'fs';
 
 dotenv.config();
 
@@ -18,66 +14,68 @@ const s3Client = new S3Client({
   },
 });
 
+// Allow image and video formats
 const fileFilter = (req, file, cb) => {
-  const filetypes = /jpeg|jpg|png|webp/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype.toLowerCase());
+  const allowedImageTypes = /jpeg|jpg|png|webp/;
+  const allowedVideoTypes = /mp4|mov|avi|webm|mkv/;
 
-  if (extname && mimetype) cb(null, true);
-  else cb(new Error('Only image files are allowed (jpeg, jpg, png, webp)'), false);
+  const extname = path.extname(file.originalname).toLowerCase();
+  const mimetype = file.mimetype.toLowerCase();
+
+  if (allowedImageTypes.test(extname) || allowedVideoTypes.test(extname)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error('Only image and video files are allowed (jpeg, jpg, png, webp, mp4, mov, avi, webm, mkv)'),
+      false
+    );
+  }
 };
 
-const uploadPath = path.join(process.cwd(), 'uploads');
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const filename = `${Date.now()}-${file.originalname}`;
-    cb(null, filename);
-  },
-});
+// Use memoryStorage to avoid local disk
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 }, // Allow large uploads (100MB)
   fileFilter,
 });
 
-// Upload to S3
-async function uploadToS3(file, bucketName) {
-  const fileContent = await fsp.readFile(file.path);
-  const key = `uploads/${Date.now()}-${file.originalname}`;
+// Upload to S3 directly from memory
+async function uploadToS3(fileBuffer, fileName, mimeType, bucketName) {
+  const key = `uploads/${Date.now()}-${fileName}`;
 
   const params = {
     Bucket: bucketName,
     Key: key,
-    Body: fileContent,
-    ContentType: file.mimetype,
+    Body: fileBuffer,
+    ContentType: mimeType,
   };
 
   const command = new PutObjectCommand(params);
   await s3Client.send(command);
-  await fsp.unlink(file.path); // delete temp file
 
   return `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
 
-// Middleware: uploads each file to S3 and sets URLs in req.body
+// Middleware: uploads images/videos to S3 and sets URLs in req.body
 export const uploadCourseAssetsToS3 = async (req, res, next) => {
   try {
-    const fields = ['thumbnail', 'logo', 'banner', 'instructorPic'];
+    const fields = ['thumbnail', 'logo', 'banner', 'instructorPic', 'courseVideo'];
+
     for (const field of fields) {
       if (req.files?.[field]?.[0]) {
         const file = req.files[field][0];
-        const url = await uploadToS3(file, process.env.AWS_BUCKET_NAME);
+        const url = await uploadToS3(
+          file.buffer,
+          file.originalname,
+          file.mimetype,
+          process.env.AWS_BUCKET_NAME
+        );
         req.body[field] = url;
       }
     }
+
     next();
   } catch (err) {
     console.error('S3 Upload Error:', err);

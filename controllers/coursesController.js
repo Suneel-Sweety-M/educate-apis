@@ -51,9 +51,10 @@ export const createCourse = async (req, res) => {
       logo,
       banner,
       instructorPic,
+      courseVideo,
     } = req.body;
 
-    if (!thumbnail || !logo || !banner || !instructorPic) {
+    if (!thumbnail || !logo || !banner || !instructorPic || !courseVideo) {
       return res.status(400).json({
         message: 'All image fields are required (thumbnail, logo, banner, instructorPic)',
       });
@@ -68,6 +69,7 @@ export const createCourse = async (req, res) => {
       instructorName,
       instructorPic,
       instructorSummary,
+      courseVideo,
     });
 
     res.status(201).json(course);
@@ -101,6 +103,7 @@ export const updateCourse = async (req, res) => {
       logo: req.body.logo || course.logo,
       banner: req.body.banner || course.banner,
       instructorPic: req.body.instructorPic || course.instructorPic,
+      courseVideo: req.body.courseVideo || course.courseVideo,
     };
 
     const updatedCourse = await Course.findByIdAndUpdate(courseId, updatedData, {

@@ -42,6 +42,11 @@ const courseSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'Instructor summary cannot be more than 500 characters'],
   },
+  courseVideo: {
+    type: String,
+    required: [true, 'Course video is required'],
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now,

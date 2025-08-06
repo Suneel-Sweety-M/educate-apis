@@ -13,22 +13,11 @@ import dbConnection from "./middleware/db.js";
 import router from "./routes/index.js";
 import courseRoutes from "./routes/courseRoutes.js";
 
-// Setup __dirname for ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load env
 dotenv.config();
-
-// Init app
 const app = express();
 const PORT = process.env.PORT || 5050;
-
 // Connect to MongoDB
 await dbConnection();
-
-
-
 // Middlewares
 app.use(helmet());
 app.use(cors({
@@ -41,27 +30,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(express.json());
-
 // API Routes
 app.use(router); 
-
 // Welcome route
 app.get("/", (req, res) => {
-  res.send("Welcome to the Educate API!");
+  res.send("Welcome to the Educate API! working");
 });
-
 // Error handler middleware
 app.use((err, req, res, next) => {
-  console.error(" FULL ERROR:", err); // log entire error object
+  console.error(" FULL ERROR:", err); 
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
 });
-
-
 // Start the server
 app.listen(PORT, () => {
-  console.log(` Server running on http://localhost:${PORT}`);
+  console.log(` Server running on ${PORT}`);
 });

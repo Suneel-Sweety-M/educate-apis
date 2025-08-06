@@ -9,6 +9,7 @@ const courseUploadFields = upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'banner', maxCount: 1 },
   { name: 'instructorPic', maxCount: 1 },
+  { name: 'courseVideo', maxCount: 1 }
 ]);
 
 router.get('/all', getCourses);
