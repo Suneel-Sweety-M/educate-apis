@@ -6,7 +6,9 @@ import multer from "multer";
 import {
   addLecture,
   deleteLecture,
-  editLecture
+  editLecture,
+  GetLecture,
+  getLectureByCourseAndId,
 } from "../controllers/lectureController.js";
 
 const router = express.Router();
@@ -22,6 +24,16 @@ router.post(
     { name: "video", maxCount: 1 },
   ]),
   addLecture
+);
+
+// ✅ Get all lectures for a specific course
+router.get("/api/courses/:courseId/lectures", GetLecture);
+
+// Get a specific lecture by courseId and lectureId
+// ✅ Get a specific lecture by courseId and lectureId
+router.get(
+  "/api/courses/:courseId/lectures/:lectureId",
+  getLectureByCourseAndId
 );
 
 // Delete Lecture
