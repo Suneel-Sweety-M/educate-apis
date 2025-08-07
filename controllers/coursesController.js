@@ -54,7 +54,7 @@ export const createCourse = async (req, res) => {
       courseVideo,
     } = req.body;
 
-    if (!thumbnail || !logo || !banner || !instructorPic || !courseVideo) {
+    if (!thumbnail || !logo || !banner || !instructorPic || !courseVideo || !title || !description || !instructorName || !instrcutorSummary) {
       return res.status(400).json({
         message: 'All image fields are required (thumbnail, logo, banner, instructorPic)',
       });
