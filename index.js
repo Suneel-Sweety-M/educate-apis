@@ -13,6 +13,9 @@ import dbConnection from "./middleware/db.js";
 import router from "./routes/index.js";
 import courseRoutes from "./routes/courseRoutes.js";
 
+import paymentRoutes from "./routes/paymentRoutes.js";
+
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -21,8 +24,12 @@ await dbConnection();
 // Middlewares
 app.use(helmet());
 app.use(cors({
+
   origin: process.env.APP_URL || '*',
   credentials: true,
+
+  origin: process.env.APP_URL,
+
 }));
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -31,21 +38,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(express.json());
 // API Routes
-app.use(router); 
-// Welcome route
-app.get("/", (req, res) => {
-  res.send("Welcome to the Educate API! working");
-});
-// Error handler middleware
-app.use((err, req, res, next) => {
-  console.error(" FULL ERROR:", err); 
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
-  });
-});
-// Start the server
+app.use(router);
+
+
+
 app.listen(PORT, () => {
   console.log(` Server running on ${PORT}`);
 });
