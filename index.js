@@ -12,6 +12,9 @@ import helmet from "helmet";
 import dbConnection from "./middleware/db.js";
 import router from "./routes/index.js";
 
+import paymentRoutes from "./routes/paymentRoutes.js";
+
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -28,6 +31,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(router);
+
+app.use("/api/payments", paymentRoutes);
+// app.use("/api/courses/payments", paymentRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
