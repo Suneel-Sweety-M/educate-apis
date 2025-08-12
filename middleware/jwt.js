@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const userModel = require("./models/User"); // Assuming userModel is imported from the User schema
+import jwt from "jsonwebtoken"
+import userModel from "../models/userModel.js";// Assuming userModel is imported from the User schema
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -55,4 +55,4 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+export default authMiddleware

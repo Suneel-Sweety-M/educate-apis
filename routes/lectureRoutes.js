@@ -9,7 +9,7 @@ import {
   editLecture,
   GetLecture,
   getLectureByCourseAndId,
-} from "../controllers/lectureController.js";
+} from "../controllers/lecturesController.js";
 
 const router = express.Router();
 

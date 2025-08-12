@@ -2,7 +2,7 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Payment from '../models/Payment.js';
 import Enrollment from '../models/Enrollment.js';
-import Course from '../models/Course.js';
+import Course from '../models/courseModel.js';
 
 // Debug environment variables
 console.log('In paymentController.js:');

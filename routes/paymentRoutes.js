@@ -5,7 +5,8 @@ import {
   getEnrollments,
   markPaid
 } from '../controllers/paymentController.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import authMiddleware from '../middleware/jwt.js';
+
 
 const router = express.Router();
 
